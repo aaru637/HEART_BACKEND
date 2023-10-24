@@ -13,6 +13,16 @@ public class ConfirmationToken {
     private LocalDateTime tokenCreated;
     private LocalDateTime tokenExpired;
 
+    public ConfirmationToken(String id, String email, LocalDateTime tokenCreated, LocalDateTime tokenExpired) {
+        this.id = id;
+        this.email = email;
+        this.tokenCreated = tokenCreated;
+        this.tokenExpired = tokenExpired;
+    }
+
+    public ConfirmationToken() {
+    }
+
     public String getid() {
         return id;
     }
@@ -42,13 +52,6 @@ public class ConfirmationToken {
     }
 
     public void setTokenExpired(LocalDateTime tokenExpired) {
-        this.tokenExpired = tokenExpired;
-    }
-
-    public ConfirmationToken(String id, String email, LocalDateTime tokenCreated, LocalDateTime tokenExpired) {
-        this.id = id;
-        this.email = email;
-        this.tokenCreated = tokenCreated;
         this.tokenExpired = tokenExpired;
     }
 

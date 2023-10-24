@@ -94,7 +94,7 @@ public class Admin {
 
     @Override
     public String toString() {
-        return "Admin [id = " + id + ", name = " + name + ", niickName = " + nickName + ", email = " + email
+        return "Admin [id = " + id + ", name = " + name + ", nickName = " + nickName + ", email = " + email
                 + ", username = " + username
                 + ", password = "
                 + password + ", adMinCode = " + adminCode + ", group = [" + group + "], requests = [" + requests

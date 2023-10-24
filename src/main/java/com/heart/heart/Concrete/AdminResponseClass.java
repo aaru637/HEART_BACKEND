@@ -5,6 +5,12 @@ public class AdminResponseClass {
     private String code;
     private Admin data;
 
+    public AdminResponseClass(String message, String code, Admin data) {
+        this.message = message;
+        this.code = code;
+        this.data = data;
+    }
+
     public String getMessage() {
         return message;
     }
@@ -21,23 +27,17 @@ public class AdminResponseClass {
         this.code = code;
     }
 
-    public Admin getAdmin() {
-        return data;
-    }
-
-    public void setAdmin(Admin data) {
-        this.data = data;
-    }
-
-    public AdminResponseClass(String message, String code, Admin data) {
-        this.message = message;
-        this.code = code;
-        this.data = data;
-    }
-
     @Override
     public String toString() {
         return "AdminResponseClass [message=" + message + ", code=" + code + ", data=" + data + "]";
+    }
+
+    public Admin getData() {
+        return data;
+    }
+
+    public void setData(Admin data) {
+        this.data = data;
     }
 
 }

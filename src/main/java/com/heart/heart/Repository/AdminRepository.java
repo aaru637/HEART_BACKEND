@@ -19,7 +19,4 @@ public interface AdminRepository extends MongoRepository<Admin, String> {
 
     @Query("{$and : [{username : {$eq : ?0}}, {password : {$eq : ?1}}]}")
     Optional<Admin> adminLogin(String username, String password);
-
-    @Query("{requests : {?0 : true}}")
-    Optional<Admin> adminRequestCheck(String id);
 }

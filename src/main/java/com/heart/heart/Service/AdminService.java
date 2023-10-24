@@ -1,5 +1,6 @@
 package com.heart.heart.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +24,7 @@ public class AdminService {
         try {
             return adminRepository.findById(id).get();
         } catch (Exception e) {
-            throw new Error("No Admin Found");
+            return new Admin();
         }
     }
 
@@ -34,7 +35,16 @@ public class AdminService {
             }
             return adminRepository.save(admin);
         } catch (Exception e) {
-            throw new Error("Error in adding Admin");
+            return new Admin();
+        }
+    }
+
+    public String deleteAdmin(String id) {
+        try {
+            adminRepository.deleteById(id);
+            return "true";
+        } catch (Exception e) {
+            return "false";
         }
     }
 
@@ -42,23 +52,23 @@ public class AdminService {
         try {
             return adminRepository.findAll();
         } catch (Exception e) {
-            throw new Error("Error in Getting All Admins.");
+            return new ArrayList<Admin>();
         }
     }
 
-    public boolean userNameCheck(String username) {
+    public String userNameCheck(String username) {
         try {
-            return (adminRepository.findByUsername(username).isPresent()) ? true : false;
+            return (adminRepository.findByUsername(username).isPresent()) ? "true" : "false";
         } catch (Exception e) {
-            throw new Error("Error while checking username");
+            return "error";
         }
     }
 
-    public Boolean adminCodeCheck(String adminCode) {
+    public String adminCodeCheck(String adminCode) {
         try {
-            return (adminRepository.findByAdminCode(adminCode).isPresent()) ? true : false;
+            return (adminRepository.findByAdminCode(adminCode).isPresent()) ? "true" : "false";
         } catch (Exception e) {
-            throw new Error("Error while checking admin code");
+            return "error";
         }
     }
 
@@ -67,7 +77,7 @@ public class AdminService {
             Optional<Admin> admin = adminRepository.adminLogin(data[0], data[1]);
             return admin.isPresent() ? admin.get().getId() : "null";
         } catch (Exception e) {
-            throw new Error("Error While Checking admin");
+            return "error";
         }
     }
 
@@ -89,9 +99,9 @@ public class AdminService {
             student.setAdminAccept(value);
             studentRepository.save(student);
             admin.setRequests(requests);
-            return (adminRepository.save(admin) != null) ? "OK" : "NOT OK";
+            return (adminRepository.save(admin) != null) ? "ok" : "not-ok";
         } catch (Exception e) {
-            throw new Error("Error accepting requests.");
+            return "error";
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.heart.heart.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public class StudentService {
         try {
             return studentRepository.findById(id).get();
         } catch (Exception e) {
-            throw new Error("No Student Found");
+            return new Student();
         }
     }
 
@@ -34,7 +35,16 @@ public class StudentService {
             }
             return studentRepository.save(student);
         } catch (Exception e) {
-            throw new Error("Error Adding Student");
+            return new Student();
+        }
+    }
+
+    public String deleteStudent(String id) {
+        try {
+            studentRepository.deleteById(id);
+            return "true";
+        } catch (Exception e) {
+            return "false";
         }
     }
 
@@ -42,15 +52,15 @@ public class StudentService {
         try {
             return studentRepository.findAll();
         } catch (Exception e) {
-            throw new Error("Error in Getting all Students.");
+            return new ArrayList<Student>();
         }
     }
 
-    public Boolean userNameCheck(String username) {
+    public String userNameCheck(String username) {
         try {
-            return (studentRepository.findByUsername(username).isPresent()) ? true : false;
+            return (studentRepository.findByUsername(username).isPresent()) ? "true" : "false";
         } catch (Exception e) {
-            throw new Error("Error while checking username");
+            return "error";
         }
     }
 
@@ -58,19 +68,19 @@ public class StudentService {
         try {
             Optional<Student> student = studentRepository.studentLogin(data[0], data[1]);
             return student.isPresent()
-                    ? (adminRepository.adminRequestCheck(student.get().getId()).isPresent() ? student.get().getId()
+                    ? (checkAdminAccept(student.get().getId()) == "true" ? student.get().getId()
                             : "admin-not-accept")
                     : "null";
         } catch (Exception e) {
-            throw new Error("Error in Checking Student.");
+            return "error";
         }
     }
 
-    public Boolean checkAdminAccept(String id) {
+    public String checkAdminAccept(String id) {
         try {
-            return studentRepository.adminAcceptCheck(id).isPresent() ? true : false;
+            return studentRepository.adminAcceptCheck(id).isPresent() ? "true" : "false";
         } catch (Exception e) {
-            throw new Error("Error in Checking admin accept status.");
+            return "error";
         }
     }
 

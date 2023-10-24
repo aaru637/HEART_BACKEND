@@ -15,7 +15,7 @@ public class ConfirmationTokenService {
         try {
             return cTokenRepository.findById(id).get();
         } catch (Exception e) {
-            throw new Error("Error Occured");
+            return new ConfirmationToken();
         }
     }
 
@@ -26,7 +26,7 @@ public class ConfirmationTokenService {
             }
             return cTokenRepository.save(cToken);
         } catch (Exception e) {
-            throw new Error("Error in adding Token");
+            return new ConfirmationToken();
         }
     }
 }

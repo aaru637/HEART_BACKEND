@@ -34,6 +34,9 @@ public class Student {
         this.isEmailVerified = isEmailVerified;
     }
 
+    public Student() {
+    }
+
     public Boolean getAdminAccept() {
         return adminAccept;
     }
