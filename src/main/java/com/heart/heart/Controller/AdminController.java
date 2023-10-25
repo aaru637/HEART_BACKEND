@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.lang.model.type.NullType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -116,7 +114,7 @@ public class AdminController {
             } else {
                 return new ResponseEntity<StringResponseClass>(
                         new StringResponseClass("add-admin-error", "failure", result),
-                        HttpStatus.OK);
+                        HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (Exception e) {
             return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
@@ -177,6 +175,23 @@ public class AdminController {
             return new ResponseEntity<StringResponseClass>(
                     new StringResponseClass("student-not-accepted", "failure", "error"),
                     HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/admin/email-verify-check/{id}")
+    public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
+        try {
+            Boolean result = adminService.getAdmin(id).isEmailVerified();
+            if (result) {
+                return new ResponseEntity<StringResponseClass>(
+                        new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<StringResponseClass>(
+                        new StringResponseClass("email-not-verified", "success", "false"), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<StringResponseClass>(
+                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -167,6 +167,23 @@ public class StudentController {
         }
     }
 
+    @GetMapping("/student/email-verify-check/{id}")
+    public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
+        try {
+            Boolean result = studentService.getStudent(id).isEmailVerified();
+            if (result) {
+                return new ResponseEntity<StringResponseClass>(
+                        new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<StringResponseClass>(
+                        new StringResponseClass("email-not-verified", "success", "false"), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<StringResponseClass>(
+                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private String emailValidation(Student student) {
         return emailSender.sendEmail(student.getEmail(), "Account Verification",
                 emailBody(student))
