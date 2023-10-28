@@ -32,7 +32,7 @@ public class ConfirmationTokenController {
         Admin admin = adminService.getAdmin(id);
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
         LocalDateTime date = LocalDateTime.now();
-        if (admin.isEmailVerified()) {
+        if (admin.getEmailVerified()) {
             return "Your Email has been already verified";
         } else {
             if (date.isBefore(cToken.getTokenExpired())) {
@@ -40,8 +40,9 @@ public class ConfirmationTokenController {
                 adminService.addAdmin(admin);
                 return "Congratulations. Your email has been verified successfully.";
             } else {
-                return "Session Expired. Click the following link to Resend Email"
-                        + Urls.ADMIN_BASE_URL + "resent-email/" + admin.getId();
+                return "Session Expired. Click the following link to Resend Email <a href =" + Urls.ADMIN_BASE_URL
+                        + "resent-email/" + admin.getId() + ">"
+                        + Urls.ADMIN_BASE_URL + "resent-email/" + admin.getId() + "</a>";
             }
         }
     }
@@ -51,7 +52,7 @@ public class ConfirmationTokenController {
         Student student = studentService.getStudent(id);
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
         LocalDateTime date = LocalDateTime.now();
-        if (student.isEmailVerified()) {
+        if (student.getEmailVerified()) {
             return "Your Email has been already verified";
         } else {
             if (date.isBefore(cToken.getTokenExpired())) {

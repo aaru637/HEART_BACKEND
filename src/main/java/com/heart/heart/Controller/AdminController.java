@@ -157,7 +157,7 @@ public class AdminController {
 
     @GetMapping("/admin/accept-student/{aId}/{sId}/{value}")
     public ResponseEntity<StringResponseClass> acceptStudentRequests(@PathVariable String aId, @PathVariable String sId,
-            @PathVariable Boolean value) {
+            @PathVariable String value) {
         try {
             String result = adminService.acceptStudentRequests(aId, sId, value);
             if (result.equals("ok")) {
@@ -181,7 +181,7 @@ public class AdminController {
     @GetMapping("/admin/email-verify-check/{id}")
     public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
         try {
-            Boolean result = adminService.getAdmin(id).isEmailVerified();
+            Boolean result = adminService.getAdmin(id).getEmailVerified();
             if (result) {
                 return new ResponseEntity<StringResponseClass>(
                         new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);

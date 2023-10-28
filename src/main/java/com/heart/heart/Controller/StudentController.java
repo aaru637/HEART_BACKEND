@@ -106,8 +106,8 @@ public class StudentController {
         try {
             addToken(student);
             Optional<Admin> admin = adminRepository.findByAdminCode(student.getAdminCode());
-            Map<String, Boolean> requests = admin.get().getRequests();
-            requests.put(student.getId(), false);
+            Map<String, String> requests = admin.get().getRequests();
+            requests.put(student.getId(), "false");
             admin.get().setRequests(requests);
             adminService.addAdmin(admin.get());
             requestEmail(student);
@@ -170,7 +170,7 @@ public class StudentController {
     @GetMapping("/student/email-verify-check/{id}")
     public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
         try {
-            Boolean result = studentService.getStudent(id).isEmailVerified();
+            Boolean result = studentService.getStudent(id).getEmailVerified();
             if (result) {
                 return new ResponseEntity<StringResponseClass>(
                         new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);

@@ -13,15 +13,15 @@ public class Student {
     private String username;
     private String password;
     private String adminCode;
-    private Boolean adminAccept;
+    private String adminAccept;
     private String type;
-    private Boolean isEmailVerified;
+    private Boolean emailVerified;
 
     public Student(String id, String name, String nickName, String email, String username, String password,
-            Boolean adminAccept,
+            String adminAccept,
             String adminCode,
             String type,
-            Boolean isEmailVerified) {
+            Boolean emailVerified) {
         this.id = id;
         this.name = name;
         this.nickName = nickName;
@@ -31,26 +31,22 @@ public class Student {
         this.adminCode = adminCode;
         this.adminAccept = adminAccept;
         this.type = type;
-        this.isEmailVerified = isEmailVerified;
+        this.emailVerified = emailVerified;
     }
 
     public Student() {
     }
 
-    public Boolean getAdminAccept() {
+    public String getAdminAccept() {
         return adminAccept;
     }
 
-    public void setAdminAccept(Boolean adminAccept) {
+    public void setAdminAccept(String adminAccept) {
         this.adminAccept = adminAccept;
     }
 
-    public Boolean isEmailVerified() {
-        return isEmailVerified;
-    }
-
-    public void setEmailVerified(Boolean isEmailVerified) {
-        this.isEmailVerified = isEmailVerified;
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public String getId() {
@@ -103,8 +99,8 @@ public class Student {
                 + ", username = " + username
                 + ", password = "
                 + password + ", adMinCode = " + adminCode + ", adminAccept = " + adminAccept + ", type = " + type
-                + ", isEmailVerified = "
-                + isEmailVerified + "]";
+                + ", emailVerified = "
+                + emailVerified + "]";
     }
 
     public void setType(String type) {
@@ -125,6 +121,10 @@ public class Student {
 
     public void setAdminCode(String adminCode) {
         this.adminCode = adminCode;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
     }
 
 }

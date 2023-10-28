@@ -17,16 +17,16 @@ public class Admin {
     private String password;
     private String adminCode;
     private List<String> group;
-    private Map<String, Boolean> requests;
+    private Map<String, String> requests;
     private String type;
-    private boolean emailVerified;
+    private Boolean emailVerified;
 
     public Admin() {
     }
 
     public Admin(String id, String name, String nickName, String email, String username, String password,
-            String adminCode, List<String> group, Map<String, Boolean> requests, String type,
-            boolean emailVerified) {
+            String adminCode, List<String> group, Map<String, String> requests, String type,
+            Boolean emailVerified) {
         this.id = id;
         this.name = name;
         this.nickName = nickName;
@@ -40,11 +40,7 @@ public class Admin {
         this.emailVerified = emailVerified;
     }
 
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(boolean emailVerified) {
+    public void setEmailVerified(Boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
 
@@ -131,11 +127,15 @@ public class Admin {
         this.nickName = nickName;
     }
 
-    public Map<String, Boolean> getRequests() {
+    public Map<String, String> getRequests() {
         return requests;
     }
 
-    public void setRequests(Map<String, Boolean> requests) {
+    public void setRequests(Map<String, String> requests) {
         this.requests = requests;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
     }
 }

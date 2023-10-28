@@ -81,10 +81,10 @@ public class AdminService {
         }
     }
 
-    public String acceptStudentRequests(String aId, String sId, Boolean value) {
+    public String acceptStudentRequests(String aId, String sId, String value) {
         try {
             Admin admin = adminRepository.findById(aId).get();
-            if (value) {
+            if (value == "true") {
                 if (!admin.getGroup().contains(sId)) {
                     admin.getGroup().add(sId);
                 } else {
@@ -93,7 +93,7 @@ public class AdminService {
             } else {
                 admin.getGroup().remove(sId);
             }
-            Map<String, Boolean> requests = admin.getRequests();
+            Map<String, String> requests = admin.getRequests();
             requests.put(sId, value);
             Student student = studentRepository.findById(sId).get();
             student.setAdminAccept(value);
