@@ -1,5 +1,6 @@
 package com.heart.heart.Controller;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class ConfirmationTokenController {
     public String adminConfirmAccount(@PathVariable String id) {
         Admin admin = adminService.getAdmin(id);
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
-        LocalDateTime date = LocalDateTime.now();
+        LocalDateTime date = LocalDateTime.now(Clock.systemDefaultZone());
         if (admin.getEmailVerified()) {
             return "Your Email has been already verified";
         } else {

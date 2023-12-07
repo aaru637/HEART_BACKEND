@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.heart.heart.Concrete.Admin;
 import com.heart.heart.Concrete.ConfirmationToken;
-import com.heart.heart.Concrete.ListStudentResponseClass;
-import com.heart.heart.Concrete.StringResponseClass;
+import com.heart.heart.Concrete.Responses.ListStudentResponseClass;
+import com.heart.heart.Concrete.Responses.StringResponseClass;
 import com.heart.heart.Concrete.Student;
-import com.heart.heart.Concrete.StudentResponseClass;
+import com.heart.heart.Concrete.Responses.StudentResponseClass;
 import com.heart.heart.Concrete.Urls;
 import com.heart.heart.Email.EmailSender;
 import com.heart.heart.Repository.AdminRepository;
@@ -63,7 +63,7 @@ public class StudentController {
         }
     }
 
-    @GetMapping("/student/student-check/{data}")
+    @GetMapping("/student/login/{data}")
     public ResponseEntity<StringResponseClass> studentLogin(@PathVariable String... data) {
         try {
             String result = studentService.studentLogin(data);
@@ -104,28 +104,40 @@ public class StudentController {
     @PostMapping("/student")
     public ResponseEntity<StringResponseClass> addStudent(@RequestBody Student student) {
         try {
+            student.setPassword(studentService.encode(student.getPassword()));
             addToken(student);
             Optional<Admin> admin = adminRepository.findByAdminCode(student.getAdminCode());
-            Map<String, String> requests = admin.get().getRequests();
-            requests.put(student.getId(), "false");
-            admin.get().setRequests(requests);
-            adminService.addAdmin(admin.get());
-            requestEmail(student);
-            String result = emailValidation(student);
-            if (result.equals("email-sent")) {
-                return new ResponseEntity<StringResponseClass>(new StringResponseClass("email-sent", "success", result),
-                        HttpStatus.OK);
-            } else if (result.equals("email-sent-error")) {
-                studentService.deleteStudent(student.getId());
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-sent-error", "failure", result),
-                        HttpStatus.SERVICE_UNAVAILABLE);
+            if (admin.isPresent()) {
+                Map<String, String> requests = admin.get().getRequests();
+                requests.put(student.getId(), "false");
+                admin.get().setRequests(requests);
+                adminService.addAdmin(admin.get());
+                requestEmail(student);
+                String result = emailValidation(student);
+                if (result.equals("email-sent")) {
+                    return new ResponseEntity<StringResponseClass>(
+                            new StringResponseClass("email-sent", "success", result),
+                            HttpStatus.OK);
+                } else if (result.equals("email-sent-error")) {
+                    studentService.deleteStudent(student.getId());
+                    cTokenService.deleteConfirmationToken(student.getId());
+                    return new ResponseEntity<StringResponseClass>(
+                            new StringResponseClass("email-sent-error", "failure", result),
+                            HttpStatus.SERVICE_UNAVAILABLE);
+                } else {
+                    cTokenService.deleteConfirmationToken(student.getId());
+                    return new ResponseEntity<StringResponseClass>(
+                            new StringResponseClass("add-student-error", "failure", result),
+                            HttpStatus.OK);
+                }
             } else {
+                cTokenService.deleteConfirmationToken(student.getId());
                 return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("add-admin-error", "failure", result),
+                        new StringResponseClass("add-student-error", "failure", "admin-not-found"),
                         HttpStatus.OK);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<StringResponseClass>(
                     new StringResponseClass("error", "failure", "error"),
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -178,6 +190,19 @@ public class StudentController {
                 return new ResponseEntity<StringResponseClass>(
                         new StringResponseClass("email-not-verified", "success", "false"), HttpStatus.OK);
             }
+        } catch (Exception e) {
+            return new ResponseEntity<StringResponseClass>(
+                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/student/resent-request-email/{sId}")
+    public ResponseEntity<StringResponseClass> resentRequestEmail(@PathVariable String sId) {
+        try {
+            Student student = studentService.getStudent(sId);
+            requestEmail(student);
+            return new ResponseEntity<StringResponseClass>(
+                    new StringResponseClass("email-sent", "success", "email-sent"), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<StringResponseClass>(
                     new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);

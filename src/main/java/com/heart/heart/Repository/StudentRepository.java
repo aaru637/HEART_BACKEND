@@ -12,9 +12,6 @@ public interface StudentRepository extends MongoRepository<Student, String> {
     @Query("{username : {$eq : ?0}}")
     Optional<Student> findByUsername(String username);
 
-    @Query("{$and : [{username : {$eq : ?0}}, {password : {$eq : ?1}}]}")
-    Optional<Student> studentLogin(String username, String password);
-
     @Query("{$and : [{id : {$eq : ?0}}, {adminAccept : {$eq : true}}]}")
     Optional<Student> adminAcceptCheck(String id);
 }

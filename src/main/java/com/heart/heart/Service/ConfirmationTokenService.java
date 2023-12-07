@@ -21,12 +21,20 @@ public class ConfirmationTokenService {
 
     public ConfirmationToken addConfirmationToken(ConfirmationToken cToken) {
         try {
-            if (cTokenRepository.existsById(cToken.getid())) {
-                cTokenRepository.deleteById(cToken.getid());
+            if (cTokenRepository.existsById(cToken.getId())) {
+                cTokenRepository.deleteById(cToken.getId());
             }
             return cTokenRepository.save(cToken);
         } catch (Exception e) {
             return new ConfirmationToken();
+        }
+    }
+
+    public void deleteConfirmationToken(String id) {
+        try {
+            cTokenRepository.deleteById(id);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

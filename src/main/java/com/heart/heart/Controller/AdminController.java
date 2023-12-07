@@ -1,5 +1,6 @@
 package com.heart.heart.Controller;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.heart.heart.Concrete.Admin;
-import com.heart.heart.Concrete.AdminResponseClass;
+import com.heart.heart.Concrete.Responses.AdminResponseClass;
 import com.heart.heart.Concrete.ConfirmationToken;
-import com.heart.heart.Concrete.ListAdminResponseClass;
-import com.heart.heart.Concrete.StringResponseClass;
+import com.heart.heart.Concrete.Responses.ListAdminResponseClass;
+import com.heart.heart.Concrete.Responses.StringResponseClass;
 import com.heart.heart.Concrete.Urls;
 import com.heart.heart.Email.EmailSender;
 import com.heart.heart.Service.AdminService;
@@ -61,17 +62,21 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/admin/admin-check/{data}")
+    @GetMapping("/admin/login/{data}")
     public ResponseEntity<StringResponseClass> adminLogin(@PathVariable String... data) {
         try {
             String result = adminService.adminLogin(data);
-            if (!result.equals("null")) {
+            if (result.startsWith("attempts")) {
                 return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-found", "success", result),
+                        new StringResponseClass("attempts expired", "success", result.substring(9)),
+                        HttpStatus.OK);
+            } else if (result.equals("null")) {
+                return new ResponseEntity<StringResponseClass>(
+                        new StringResponseClass("admin-not-found", "success", result),
                         HttpStatus.OK);
             } else {
                 return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-not-found", "success", result),
+                        new StringResponseClass("admin-found", "success", result),
                         HttpStatus.OK);
             }
         } catch (Exception e) {
@@ -101,6 +106,7 @@ public class AdminController {
     @PostMapping("/admin")
     public ResponseEntity<StringResponseClass> addAdmin(@RequestBody Admin admin) {
         try {
+            admin.setPassword(adminService.encode(admin.getPassword()));
             addToken(admin);
             String result = emailValidation(admin);
             if (result.equals("email-sent")) {
@@ -137,6 +143,7 @@ public class AdminController {
     public ResponseEntity<StringResponseClass> checkUsername(@PathVariable String username) {
         try {
             String result = adminService.userNameCheck(username);
+            System.out.println(result);
             return adminUserAndCodeCheck(result);
         } catch (Exception e) {
             return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
@@ -157,7 +164,7 @@ public class AdminController {
 
     @GetMapping("/admin/accept-student/{aId}/{sId}/{value}")
     public ResponseEntity<StringResponseClass> acceptStudentRequests(@PathVariable String aId, @PathVariable String sId,
-            @PathVariable String value) {
+            @PathVariable Boolean value) {
         try {
             String result = adminService.acceptStudentRequests(aId, sId, value);
             if (result.equals("ok")) {
@@ -214,7 +221,7 @@ public class AdminController {
 
     private void addToken(Admin admin) {
         ConfirmationToken cToken = new ConfirmationToken(admin.getId(), admin.getEmail(), LocalDateTime.now(),
-                LocalDateTime.from(LocalDateTime.now().plusHours(1)));
+                LocalDateTime.from(LocalDateTime.now(Clock.systemDefaultZone()).plusHours(1)));
         cTokenService.addConfirmationToken(cToken);
     }
 
