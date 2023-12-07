@@ -11,7 +11,6 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.heart.heart.Concrete.Admin;
 import com.heart.heart.Concrete.Student;
 import com.heart.heart.Repository.AdminRepository;
 import com.heart.heart.Repository.StudentRepository;
