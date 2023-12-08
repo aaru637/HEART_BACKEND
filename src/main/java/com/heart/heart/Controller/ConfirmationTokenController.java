@@ -2,6 +2,7 @@ package com.heart.heart.Controller;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,9 @@ public class ConfirmationTokenController {
     @GetMapping("/admin/confirm-account/{id}")
     public String adminConfirmAccount(@PathVariable String id) {
         Admin admin = adminService.getAdmin(id);
+        if (admin.getId() == null) {
+            return "UnAuthorized User. Please request to resent a verification mail in your app.";
+        }
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
         LocalDateTime date = LocalDateTime.now(Clock.systemDefaultZone());
         if (admin.getEmailVerified()) {
@@ -51,6 +55,9 @@ public class ConfirmationTokenController {
     @GetMapping("/student/confirm-account/{id}")
     public String studentConfirmAccount(@PathVariable String id) {
         Student student = studentService.getStudent(id);
+        if (student.getId() == null) {
+            return "UnAuthorized User. Please request to resent a verification mail in your app.";
+        }
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
         LocalDateTime date = LocalDateTime.now();
         if (student.getEmailVerified()) {

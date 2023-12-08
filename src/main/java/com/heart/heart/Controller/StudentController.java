@@ -8,6 +8,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.heart.heart.Concrete.Admin;
 import com.heart.heart.Concrete.ConfirmationToken;
 import com.heart.heart.Concrete.Responses.ListStudentResponseClass;
@@ -32,77 +36,80 @@ import com.heart.heart.Service.StudentService;
 public class StudentController {
 
     @Autowired
-    StudentService studentService;
+    private StudentService studentService;
 
     @Autowired
-    AdminService adminService;
+    private AdminService adminService;
 
     @Autowired
-    ConfirmationTokenService cTokenService;
+    private ConfirmationTokenService cTokenService;
 
     @Autowired
-    EmailSender emailSender;
+    private EmailSender emailSender;
 
     @Autowired
-    AdminRepository adminRepository;
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping("/student/{id}")
-    public ResponseEntity<StudentResponseClass> getStudent(@PathVariable String id) {
+    public ResponseEntity<String> getStudent(@PathVariable String id) throws JsonProcessingException {
         try {
             Student student = studentService.getStudent(id);
             if (student.getId() == null) {
-                return new ResponseEntity<StudentResponseClass>(
-                        new StudentResponseClass("student-not-found", "success", new Student()), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StudentResponseClass("student-not-found", true, new Student())));
             } else {
-                return new ResponseEntity<StudentResponseClass>(
-                        new StudentResponseClass("student-found", "success", student), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StudentResponseClass("student-found", true, student)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StudentResponseClass>(
-                    new StudentResponseClass("error", "failure", new Student()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                    .writeValueAsString(new StudentResponseClass("failure", false, new Student())));
         }
     }
 
     @GetMapping("/student/login/{data}")
-    public ResponseEntity<StringResponseClass> studentLogin(@PathVariable String... data) {
+    public ResponseEntity<String> studentLogin(@PathVariable String... data) throws JsonProcessingException {
         try {
             String result = studentService.studentLogin(data);
             if (result.equals("admin-not-accept")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-not-accept", "success", result), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StringResponseClass("admin-not-accept", true, result)));
             } else if (result.equals("null")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-not-found", "success", "student-not-found"), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StringResponseClass("student-not-found", true, result)));
             } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-accept-student-found", "success", result), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StringResponseClass("admin-accept-student-found", true, result)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", true, "error")));
         }
     }
 
     @GetMapping("/student")
-    public ResponseEntity<ListStudentResponseClass> getAllStudent() {
+    public ResponseEntity<String> getAllStudent() throws JsonProcessingException {
         try {
             List<Student> students = studentService.getAllStudents();
             if (students.size() == 0) {
-                return new ResponseEntity<ListStudentResponseClass>(
-                        new ListStudentResponseClass("students-not-found", "success", students), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new ListStudentResponseClass("students-not-found", true, students)));
             } else {
-                return new ResponseEntity<ListStudentResponseClass>(
-                        new ListStudentResponseClass("students-found", "success", students), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new ListStudentResponseClass("students-found", true, students)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<ListStudentResponseClass>(
-                    new ListStudentResponseClass("error", "failure", new ArrayList<Student>()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                    .writeValueAsString(new ListStudentResponseClass("failure", false, new ArrayList<Student>())));
         }
     }
 
     @PostMapping("/student")
-    public ResponseEntity<StringResponseClass> addStudent(@RequestBody Student student) {
+    public ResponseEntity<String> addStudent(@RequestBody Student student) throws JsonProcessingException {
         try {
             student.setPassword(studentService.encode(student.getPassword()));
             addToken(student);
@@ -115,97 +122,109 @@ public class StudentController {
                 requestEmail(student);
                 String result = emailValidation(student);
                 if (result.equals("email-sent")) {
-                    return new ResponseEntity<StringResponseClass>(
-                            new StringResponseClass("email-sent", "success", result),
-                            HttpStatus.OK);
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                            .writeValueAsString(new StringResponseClass("email-sent", true, result)));
                 } else if (result.equals("email-sent-error")) {
                     studentService.deleteStudent(student.getId());
                     cTokenService.deleteConfirmationToken(student.getId());
-                    return new ResponseEntity<StringResponseClass>(
-                            new StringResponseClass("email-sent-error", "failure", result),
-                            HttpStatus.SERVICE_UNAVAILABLE);
+                    return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                            .body(objectMapper
+                                    .writeValueAsString(new StringResponseClass("email-sent-error", false, result)));
                 } else {
                     cTokenService.deleteConfirmationToken(student.getId());
-                    return new ResponseEntity<StringResponseClass>(
-                            new StringResponseClass("add-student-error", "failure", result),
-                            HttpStatus.OK);
+                    return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                            .body(objectMapper
+                                    .writeValueAsString(new StringResponseClass("add-student-error", false, result)));
                 }
             } else {
                 cTokenService.deleteConfirmationToken(student.getId());
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("add-student-error", "failure", "admin-not-found"),
-                        HttpStatus.OK);
+                return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("failure", false, "admin-not-found")));
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
     @GetMapping("/student/resent-email/{id}")
-    public ResponseEntity<StringResponseClass> emailReSend(@PathVariable String id) {
+    public ResponseEntity<String> emailReSend(@PathVariable String id) throws JsonProcessingException {
         try {
             Student student = studentService.getStudent(id);
             addToken(student);
             return addStudent(student);
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
     @GetMapping("/student/student-username-check/{username}")
-    public ResponseEntity<StringResponseClass> checkUsername(@PathVariable String username) {
+    public ResponseEntity<String> checkUsername(@PathVariable String username) throws JsonProcessingException {
         try {
             String result = studentService.userNameCheck(username);
             if (result.equals("true")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-found", "success", result),
-                        HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("student-found", true, result)));
             } else if (result.equals("false")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-not-found", "success", result),
-                        HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("student-not-found", true, result)));
             } else {
-                return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", result),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
+                return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("failure", false, result)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
     @GetMapping("/student/email-verify-check/{id}")
-    public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
+    public ResponseEntity<String> emailVerifyCheck(@PathVariable String id) throws JsonProcessingException {
         try {
-            Boolean result = studentService.getStudent(id).getEmailVerified();
+            Student student = studentService.getStudent(id);
+            if (student.getId() == null) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("UnAuthorized User.", true, "false")));
+            }
+            Boolean result = student.getEmailVerified();
             if (result) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("email-verified", true, "true")));
             } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-not-verified", "success", "false"), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("email-not-verified", true, "false")));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
     @GetMapping("/student/resent-request-email/{sId}")
-    public ResponseEntity<StringResponseClass> resentRequestEmail(@PathVariable String sId) {
+    public ResponseEntity<String> resentRequestEmail(@PathVariable String sId) throws JsonProcessingException {
         try {
             Student student = studentService.getStudent(sId);
             requestEmail(student);
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("email-sent", "success", "email-sent"), HttpStatus.OK);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("email-sent", true, "email-sent")));
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 

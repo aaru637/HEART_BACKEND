@@ -4,16 +4,25 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.heart.heart.Concrete.Admin;
 import com.heart.heart.Concrete.Responses.AdminResponseClass;
 import com.heart.heart.Concrete.ConfirmationToken;
@@ -21,223 +30,345 @@ import com.heart.heart.Concrete.Responses.ListAdminResponseClass;
 import com.heart.heart.Concrete.Responses.StringResponseClass;
 import com.heart.heart.Concrete.Urls;
 import com.heart.heart.Email.EmailSender;
+import com.heart.heart.Repository.AdminRepository;
 import com.heart.heart.Service.AdminService;
 import com.heart.heart.Service.ConfirmationTokenService;
 
 @RestController
 public class AdminController {
 
-    @Autowired
-    private AdminService adminService;
+        @Autowired
+        private AdminService adminService;
 
-    @Autowired
-    private EmailSender emailSender;
+        @Autowired
+        private EmailSender emailSender;
 
-    @Autowired
-    private ConfirmationTokenService cTokenService;
+        @Autowired
+        private ConfirmationTokenService cTokenService;
 
-    @GetMapping("/")
-    public String hello() {
-        return "Welcome to Deadlock";
-    }
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @GetMapping("/admin/{id}")
-    public ResponseEntity<AdminResponseClass> getAdmin(@PathVariable String id) {
-        try {
-            Admin admin = adminService.getAdmin(id);
-            if (admin.getId() == null) {
-                return new ResponseEntity<AdminResponseClass>(
-                        new AdminResponseClass("admin-not-found", "success", new Admin()),
-                        HttpStatus.OK);
-            } else {
-                return new ResponseEntity<AdminResponseClass>(
-                        new AdminResponseClass("admin-found", "success", admin),
-                        HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<AdminResponseClass>(
-                    new AdminResponseClass("error", "failure", new Admin()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @Autowired
+        private AdminRepository adminRepository;
+
+        @GetMapping("/")
+        public String hello() {
+                return "Welcome to Deadlock";
         }
-    }
 
-    @GetMapping("/admin/login/{data}")
-    public ResponseEntity<StringResponseClass> adminLogin(@PathVariable String... data) {
-        try {
-            String result = adminService.adminLogin(data);
-            if (result.startsWith("attempts")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("attempts expired", "success", result.substring(9)),
-                        HttpStatus.OK);
-            } else if (result.equals("null")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-not-found", "success", result),
-                        HttpStatus.OK);
-            } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-found", "success", result),
-                        HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin/{id}")
+        public ResponseEntity<String> getAdmin(@PathVariable String id) throws JsonProcessingException {
+                try {
+                        Admin admin = adminService.getAdmin(id);
+                        if (admin.getId() == null) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(new AdminResponseClass(
+                                                                                "admin-not-found", true, new Admin())));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(new AdminResponseClass(
+                                                                                "admin-found", true, admin)));
+                        }
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(new AdminResponseClass("failure", false,
+                                                                        new Admin())));
+                }
         }
-    }
 
-    @GetMapping("/admin")
-    public ResponseEntity<ListAdminResponseClass> getAllAdmin() {
-        try {
-            List<Admin> admins = adminService.getAllAdmins();
-            if (admins.size() != 0) {
-                return new ResponseEntity<ListAdminResponseClass>(new ListAdminResponseClass(
-                        "admins-found", "success", admins), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<ListAdminResponseClass>(new ListAdminResponseClass(
-                        "admins-not-found", "success", admins), HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<ListAdminResponseClass>(new ListAdminResponseClass(
-                    "error", "failure", new ArrayList<Admin>()), HttpStatus.OK);
+        @GetMapping("/admin/login/{data}")
+        public ResponseEntity<String> adminLogin(@PathVariable String... data) throws JsonProcessingException {
+                try {
+                        String result = adminService.adminLogin(data);
+                        if (result.startsWith("attempts")) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "attempts expired",
+                                                                                                true,
+                                                                                                result.substring(9))));
+                        } else if (result.equals("null")) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "admin-not-found", true,
+                                                                                                result)));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass("admin-found",
+                                                                                                true, result)));
+                        }
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
         }
-    }
 
-    @PostMapping("/admin")
-    public ResponseEntity<StringResponseClass> addAdmin(@RequestBody Admin admin) {
-        try {
-            admin.setPassword(adminService.encode(admin.getPassword()));
-            addToken(admin);
-            String result = emailValidation(admin);
-            if (result.equals("email-sent")) {
-                return new ResponseEntity<StringResponseClass>(new StringResponseClass("email-sent", "success", result),
-                        HttpStatus.OK);
-            } else if (result.equals("email-sent-error")) {
-                adminService.deleteAdmin(admin.getId());
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-sent-error", "failure", result),
-                        HttpStatus.SERVICE_UNAVAILABLE);
-            } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("add-admin-error", "failure", result),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin")
+        public ResponseEntity<String> getAllAdmin() throws JsonProcessingException {
+                try {
+                        List<Admin> admins = adminService.getAllAdmins();
+                        if (admins.size() != 0) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new ListAdminResponseClass(
+                                                                                                "admins-found", true,
+                                                                                                admins)));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new ListAdminResponseClass(
+                                                                                                "admins-not-found",
+                                                                                                true, admins)));
+                        }
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new ListAdminResponseClass(
+                                                                                        "failure", false,
+                                                                                        new ArrayList<Admin>())));
+                }
         }
-    }
 
-    @GetMapping("/admin/resent-email/{id}")
-    public ResponseEntity<StringResponseClass> emailReSend(@PathVariable String id) {
-        try {
-            Admin admin = adminService.getAdmin(id);
-            return addAdmin(admin);
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @PostMapping("/admin")
+        public ResponseEntity<String> addAdmin(@RequestBody Admin admin) throws JsonProcessingException {
+                try {
+                        admin.setPassword(adminService.encode(admin.getPassword()));
+                        addToken(admin);
+                        String result = emailValidation(admin);
+                        if (result.equals("email-sent")) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass("email-sent",
+                                                                                                true, result)));
+                        } else if (result.equals("email-sent-error")) {
+                                adminService.deleteAdmin(admin.getId());
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "email-sent-error",
+                                                                                                false, result)));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "add-admin-error",
+                                                                                                false, result)));
+                        }
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
         }
-    }
 
-    @GetMapping("/admin/admin-username-check/{username}")
-    public ResponseEntity<StringResponseClass> checkUsername(@PathVariable String username) {
-        try {
-            String result = adminService.userNameCheck(username);
-            System.out.println(result);
-            return adminUserAndCodeCheck(result);
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin/resent-email/{id}")
+        public ResponseEntity<String> emailReSend(@PathVariable String id) throws JsonProcessingException {
+                try {
+                        Admin admin = adminService.getAdmin(id);
+                        return addAdmin(admin);
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", true,
+                                                                                        "error")));
+                }
         }
-    }
 
-    @GetMapping("/admin/admin-code-check/{adminCode}")
-    public ResponseEntity<StringResponseClass> checkAdminCode(@PathVariable String adminCode) {
-        try {
-            String result = adminService.adminCodeCheck(adminCode);
-            return adminUserAndCodeCheck(result);
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin/admin-username-check/{username}")
+        public ResponseEntity<String> checkUsername(@PathVariable String username) throws JsonProcessingException {
+                try {
+                        String result = adminService.userNameCheck(username);
+                        return adminUserAndCodeCheck(result);
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
         }
-    }
 
-    @GetMapping("/admin/accept-student/{aId}/{sId}/{value}")
-    public ResponseEntity<StringResponseClass> acceptStudentRequests(@PathVariable String aId, @PathVariable String sId,
-            @PathVariable Boolean value) {
-        try {
-            String result = adminService.acceptStudentRequests(aId, sId, value);
-            if (result.equals("ok")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-accepted", "success", result), HttpStatus.OK);
-            } else if (result.equals("user-already-enrolled")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("user-already-enrolled", "success", result), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-not-accepted", "failure", result),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("student-not-accepted", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin/admin-code-check/{adminCode}")
+        public ResponseEntity<String> checkAdminCode(@PathVariable String adminCode) throws JsonProcessingException {
+                try {
+                        String result = adminService.adminCodeCheck(adminCode);
+                        return adminUserAndCodeCheck(result);
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
         }
-    }
 
-    @GetMapping("/admin/email-verify-check/{id}")
-    public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
-        try {
-            Boolean result = adminService.getAdmin(id).getEmailVerified();
-            if (result) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-not-verified", "success", "false"), HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin/accept-student/{aId}/{sId}/{value}")
+        public ResponseEntity<String> acceptStudentRequests(@PathVariable String aId, @PathVariable String sId,
+                        @PathVariable Boolean value) throws JsonProcessingException {
+                try {
+                        String result = adminService.acceptStudentRequests(aId, sId, value);
+                        if (result.equals("ok")) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "student-accepted",
+                                                                                                true, result)));
+                        } else if (result.equals("user-already-enrolled")) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "user-already-enrolled",
+                                                                                                true, result)));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "student-not-accepted",
+                                                                                                false, result)));
+                        }
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
         }
-    }
 
-    private String emailBody(Admin admin) {
-        return "Hi, " + admin.getName() + ", \n " +
-                "Welcome to the Heart❤️" +
-                "\n\n" +
-                "This is valid only 1 hour." +
-                "Click the below link to verify your account :" + Urls.ADMIN_BASE_URL + "confirm-account/"
-                + admin.getId();
-    }
-
-    private String emailValidation(Admin admin) {
-        return emailSender.sendEmail(admin.getEmail(), "Account Verification",
-                emailBody(admin))
-                        ? ((adminService.addAdmin(admin) != null) ? "email-sent"
-                                : "add-admin-error")
-                        : "email-sent-error";
-    }
-
-    private void addToken(Admin admin) {
-        ConfirmationToken cToken = new ConfirmationToken(admin.getId(), admin.getEmail(), LocalDateTime.now(),
-                LocalDateTime.from(LocalDateTime.now(Clock.systemDefaultZone()).plusHours(1)));
-        cTokenService.addConfirmationToken(cToken);
-    }
-
-    private ResponseEntity<StringResponseClass> adminUserAndCodeCheck(String result) {
-        if (result.equals("true")) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("admin-found", "success", result),
-                    HttpStatus.OK);
-        } else if (result.equals("false")) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("admin-not-found", "success", result),
-                    HttpStatus.OK);
-        } else {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", result),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        @GetMapping("/admin/email-verify-check/{id}")
+        public ResponseEntity<String> emailVerifyCheck(@PathVariable String id) throws JsonProcessingException {
+                try {
+                        Admin admin = adminService.getAdmin(id);
+                        if (admin.getId() == null) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(new StringResponseClass(
+                                                                                "UnAuthorized User.", true, "false")));
+                        }
+                        Boolean result = adminService.getAdmin(id).getEmailVerified();
+                        if (result) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "email-verified", true,
+                                                                                                "true")));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "email-not-verified",
+                                                                                                true, "false")));
+                        }
+                } catch (Exception e) {
+                        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
         }
-    }
+
+        @GetMapping("/admin/forgot-password/{username}")
+        public ResponseEntity<String> forgotPassword(@PathVariable String username, Model model)
+                        throws JsonProcessingException {
+                try {
+                        Optional<Admin> admin = adminRepository.findByUsername(username);
+                        if (admin.isPresent()) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper.writeValueAsString(
+                                                                new StringResponseClass("admin-found-email-sent", true,
+                                                                                admin.get().getEmail())));
+                        } else {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper.writeValueAsString(new StringResponseClass(
+                                                                "admin-not-found", true, username)));
+                        }
+                } catch (Exception e) {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper.writeValueAsString(new StringResponseClass(
+                                                        "failure", false, "error")));
+                }
+        }
+
+        @GetMapping("/admin/forgot/{id}")
+        public ModelAndView forgot(@PathVariable String id, Model model) {
+                Admin admin = adminService.getAdmin(id);
+                ModelAndView modelAndView = new ModelAndView("index");
+                modelAndView.addObject("username", admin.getUsername());
+                return modelAndView;
+        }
+
+        private String emailBody(Admin admin) {
+                return "Hi, " + admin.getName() + ", \n " +
+                                "Welcome to the Heart❤️" +
+                                "\n\n" +
+                                "This is valid only 1 hour." +
+                                "Click the below link to verify your account :" + Urls.ADMIN_BASE_URL
+                                + "confirm-account/"
+                                + admin.getId();
+        }
+
+        private String emailValidation(Admin admin) {
+                return emailSender.sendEmail(admin.getEmail(), "Account Verification",
+                                emailBody(admin))
+                                                ? ((adminService.addAdmin(admin) != null) ? "email-sent"
+                                                                : "add-admin-error")
+                                                : "email-sent-error";
+        }
+
+        private void addToken(Admin admin) {
+                ConfirmationToken cToken = new ConfirmationToken(admin.getId(), admin.getEmail(), LocalDateTime.now(),
+                                LocalDateTime.from(LocalDateTime.now(Clock.systemDefaultZone()).plusHours(1)));
+                cTokenService.addConfirmationToken(cToken);
+        }
+
+        private ResponseEntity<String> adminUserAndCodeCheck(String result) throws JsonProcessingException {
+                if (result.equals("true")) {
+                        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("admin-found", true,
+                                                                                        result)));
+                } else if (result.equals("false")) {
+                        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("admin-not-found", true,
+                                                                                        result)));
+                } else {
+                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("failure", false,
+                                                                                        "error")));
+                }
+        }
 
 }

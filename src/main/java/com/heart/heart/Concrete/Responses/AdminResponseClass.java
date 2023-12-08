@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdminResponseClass {
     private String message;
-    private String code;
+    private Boolean success;
     private Admin data;
 
 }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class StudentResponseClass {
 
     private String message;
-    private String code;
+    private Boolean success;
     private Student data;
 
 }

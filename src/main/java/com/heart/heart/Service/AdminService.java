@@ -79,7 +79,6 @@ public class AdminService {
     public String acceptStudentRequests(String aId, String sId, Boolean value) {
         try {
             Admin admin = adminRepository.findById(aId).get();
-            System.out.println(value);
             Map<String, String> requests = admin.getRequests();
             requests.put(sId, Boolean.toString(value));
             Student student = studentRepository.findById(sId).get();
