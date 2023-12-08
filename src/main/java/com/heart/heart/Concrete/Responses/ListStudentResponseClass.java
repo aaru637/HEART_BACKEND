@@ -14,7 +14,7 @@ import java.util.List;
 public class ListStudentResponseClass {
 
     private String message;
-    private String code;
+    private Boolean success;
     private List<Student> data;
 
 }

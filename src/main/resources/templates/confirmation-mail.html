@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" th:href="@{/images/HEART.png}" />
+    <title>Account-Confirmation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+        * {
+            font-family: "Poppins";
+        }
+
+        .outer {
+            display: flex;
+            flex-flow: row wrap;
+            justify-content: center;
+        }
+
+        .content {
+            margin: 1rem;
+            border: 0.3rem white solid;
+            padding: 2.5rem;
+            font-size: small;
+            color: white;
+            background-color: #28292e;
+        }
+
+        .button a {
+            padding-top: 0.3rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        a {
+            color: aqua;
+        }
+
+        .button {
+            display: flex;
+            border: 0.2rem white solid;
+            width: max-content;
+            height: max-content;
+            background-color: rgb(50, 216, 166);
+            padding: 0.3rem;
+            border-radius: 0.9rem;
+        }
+
+        p {
+            color: white;
+        }
+
+        .outer {
+            margin-top: 1rem;
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .success {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-flow: column nowrap;
+        }
+
+        .success p {
+            font-size: x-large;
+        }
+
+        .inner {
+            display: flex;
+            align-items:center;
+            flex-flow: column wrap;
+        }
+    </style>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+</head>
+
+<body>
+    <div class="content">
+        <div class="outer">
+            <h3>WELCOME TO HEART</h3>
+            <img th:src="@{/images/HEART.png}" alt="Logo" width="50" height="50">
+        </div>
+        <div class="success" th:switch="${type}">
+            <div th:case="'not-expired'">
+                <lottie-player
+                    th:src="${source}"
+                    background="#28292e" speed="1" style="width: 300px; height: 300px" loop autoplay direction="2"
+                    mode="normal"></lottie-player>
+                <p th:text="${content}"></p>
+                <p th:text="${result}"></p>
+            </div>
+            <div th:case="'expired'">
+                <div class="inner">
+                <lottie-player
+                    th:src="${source}"
+                    background="#28292e" speed="1" style="width: 300px; height: 300px" loop autoplay direction="2"
+                    mode="normal"></lottie-player>
+                <p th:text="${content}"></p>
+                    <p>Click the following button to resend a Confirmation mail </p>
+                    <div class="button">
+                        <a th:href="${result}" target="parent">RESENT MAIL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

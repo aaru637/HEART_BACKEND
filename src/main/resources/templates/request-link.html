@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Confirmation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+        * {
+            font-family: "Poppins";
+        }
+
+        .outer {
+            display: flex;
+            flex-flow: row wrap;
+            justify-content: center;
+        }
+
+        .content {
+            margin: 1rem;
+            border: 0.3rem white solid;
+            padding: 2.5rem;
+            font-size: small;
+            color: white;
+            background-color: rgb(40, 41, 46);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .button {
+            display: flex;
+            border: 0.2rem white solid;
+            width: max-content;
+            background-color: rgb(50, 216, 166);
+            padding: 0.3rem;
+            border-radius: 0.9rem;
+        }
+
+        p {
+            color: white;
+        }
+
+        .button a {
+            padding-top: 0.3rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        a {
+            color: aqua;
+        }
+
+        .outer {
+            margin-top: 1rem;
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <div class="outer">
+            <h3>WELCOME TO HEART</h3>
+            <img src="@{./images/HEART.png}" alt="Logo" width="50" height="50">
+        </div>
+        <p>Hi <span><b th:text="${aName}">
+                </b></span></p>
+        <p><span><b th:text="${sName}">
+                </b></span> wants to join your group. </p>
+        <p>Click the following link to accept <span><b th:text="${sName}"></b></span> <a
+                th:href="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}">Click
+                Here</a> or Copy and Paste the following
+            link in your browser. <a
+                th:href="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}"
+                th:text="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}">/</a></p>
+        <div class="button">
+            <a th:href="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}"
+                target="_blank">VERIFY</a>
+        </div>
+        <p>This is an auto-generated mail. Don't reply with this mail.</p>
+        <p>
+            Thank You...
+        </p>
+    </div>
+</body>
+
+</html>

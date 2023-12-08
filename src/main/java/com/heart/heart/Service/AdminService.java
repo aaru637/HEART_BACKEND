@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -13,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.heart.heart.Concrete.Admin;
 import com.heart.heart.Concrete.Student;
+import com.heart.heart.Concrete.StudentRequest;
 import com.heart.heart.Repository.AdminRepository;
-import com.heart.heart.Repository.StudentRepository;
 
 @Service
 public class AdminService {
@@ -22,7 +21,7 @@ public class AdminService {
     private AdminRepository adminRepository;
 
     @Autowired
-    private StudentRepository studentRepository;
+    private StudentService studentService;
 
     public Admin getAdmin(String id) {
         try {
@@ -76,30 +75,24 @@ public class AdminService {
         }
     }
 
-    public String acceptStudentRequests(String aId, String sId, Boolean value) {
+    public String acceptStudentRequests(String aId, String sId) {
         try {
             Admin admin = adminRepository.findById(aId).get();
-            System.out.println(value);
-            Map<String, String> requests = admin.getRequests();
-            requests.put(sId, Boolean.toString(value));
-            Student student = studentRepository.findById(sId).get();
-            student.setAdminAccept(value);
-            studentRepository.save(student);
-            admin.setRequests(requests);
-            if (value) {
-                if (!(admin.getGroup().contains(sId))) {
-                    List<String> group = admin.getGroup();
-                    group.add(sId);
-                    admin.setGroup(group);
-                } else {
-                    return "user-already-enrolled";
-                }
-            } else {
+            List<StudentRequest> requests = admin.getRequests();
+            if (!(admin.getGroup().contains(sId))) {
+                Student student = studentService.getStudent(sId);
+                requests.add(new StudentRequest(student.getId(), student.getName(), true,
+                        LocalDateTime.now(Clock.systemDefaultZone())));
+                student.setAdminAccept(true);
+                studentService.addStudent(student);
+                admin.setRequests(requests);
                 List<String> group = admin.getGroup();
-                group.remove(sId);
+                group.add(sId);
                 admin.setGroup(group);
+            } else {
+                return "user-already-enrolled";
             }
-            return (adminRepository.save(admin) != null) ? "ok" : "not-ok";
+            return (addAdmin(admin) != null) ? "ok" : "not-ok";
         } catch (Exception e) {
             return "error";
         }

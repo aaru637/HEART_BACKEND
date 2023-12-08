@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ListAdminResponseClass {
     private String message;
-    private String code;
+    private Boolean success;
     private List<Admin> data;
 
 }

@@ -1,217 +1,353 @@
 package com.heart.heart.Controller;
 
+import java.io.IOException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.heart.heart.Concrete.Admin;
 import com.heart.heart.Concrete.ConfirmationToken;
+import com.heart.heart.Concrete.Password;
 import com.heart.heart.Concrete.Responses.ListStudentResponseClass;
 import com.heart.heart.Concrete.Responses.StringResponseClass;
 import com.heart.heart.Concrete.Student;
+import com.heart.heart.Concrete.StudentRequest;
 import com.heart.heart.Concrete.Responses.StudentResponseClass;
-import com.heart.heart.Concrete.Urls;
 import com.heart.heart.Email.EmailSender;
 import com.heart.heart.Repository.AdminRepository;
+import com.heart.heart.Repository.StudentRepository;
 import com.heart.heart.Service.AdminService;
 import com.heart.heart.Service.ConfirmationTokenService;
 import com.heart.heart.Service.StudentService;
+
+import jakarta.mail.MessagingException;
 
 @RestController
 public class StudentController {
 
     @Autowired
-    StudentService studentService;
+    private StudentService studentService;
 
     @Autowired
-    AdminService adminService;
+    private AdminService adminService;
 
     @Autowired
-    ConfirmationTokenService cTokenService;
+    private ConfirmationTokenService cTokenService;
 
     @Autowired
-    EmailSender emailSender;
+    private EmailSender emailSender;
 
     @Autowired
-    AdminRepository adminRepository;
+    private AdminRepository adminRepository;
 
-    @GetMapping("/student/{id}")
-    public ResponseEntity<StudentResponseClass> getStudent(@PathVariable String id) {
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @GetMapping("/api/student/")
+    public ResponseEntity<String> getStudent(@RequestParam String id) throws JsonProcessingException {
         try {
             Student student = studentService.getStudent(id);
             if (student.getId() == null) {
-                return new ResponseEntity<StudentResponseClass>(
-                        new StudentResponseClass("student-not-found", "success", new Student()), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StudentResponseClass("student-not-found", true, new Student())));
             } else {
-                return new ResponseEntity<StudentResponseClass>(
-                        new StudentResponseClass("student-found", "success", student), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StudentResponseClass("student-found", true, student)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StudentResponseClass>(
-                    new StudentResponseClass("error", "failure", new Student()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                    .writeValueAsString(new StudentResponseClass("failure", false, new Student())));
         }
     }
 
-    @GetMapping("/student/login/{data}")
-    public ResponseEntity<StringResponseClass> studentLogin(@PathVariable String... data) {
+    @GetMapping("/api/student/login/")
+    public ResponseEntity<String> studentLogin(@RequestParam String username, @RequestParam String password)
+            throws JsonProcessingException {
         try {
-            String result = studentService.studentLogin(data);
+            String result = studentService.studentLogin(new String[] { username, password });
             if (result.equals("admin-not-accept")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-not-accept", "success", result), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StringResponseClass("admin-not-accept", true, result)));
             } else if (result.equals("null")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-not-found", "success", "student-not-found"), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StringResponseClass("student-not-found", true, result)));
             } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("admin-accept-student-found", "success", result), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new StringResponseClass("admin-accept-student-found", true, result)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", true, "error")));
         }
     }
 
-    @GetMapping("/student")
-    public ResponseEntity<ListStudentResponseClass> getAllStudent() {
+    @GetMapping("/api/student")
+    public ResponseEntity<String> getAllStudent() throws JsonProcessingException {
         try {
             List<Student> students = studentService.getAllStudents();
             if (students.size() == 0) {
-                return new ResponseEntity<ListStudentResponseClass>(
-                        new ListStudentResponseClass("students-not-found", "success", students), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new ListStudentResponseClass("students-not-found", true, students)));
             } else {
-                return new ResponseEntity<ListStudentResponseClass>(
-                        new ListStudentResponseClass("students-found", "success", students), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                        .writeValueAsString(new ListStudentResponseClass("students-found", true, students)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<ListStudentResponseClass>(
-                    new ListStudentResponseClass("error", "failure", new ArrayList<Student>()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                    .writeValueAsString(new ListStudentResponseClass("failure", false, new ArrayList<Student>())));
         }
     }
 
-    @PostMapping("/student")
-    public ResponseEntity<StringResponseClass> addStudent(@RequestBody Student student) {
+    @PostMapping("/api/student")
+    public ResponseEntity<String> addStudent(@RequestBody Student student) throws JsonProcessingException {
         try {
             student.setPassword(studentService.encode(student.getPassword()));
             addToken(student);
             Optional<Admin> admin = adminRepository.findByAdminCode(student.getAdminCode());
             if (admin.isPresent()) {
-                Map<String, String> requests = admin.get().getRequests();
-                requests.put(student.getId(), "false");
+                StudentRequest studentRequest = new StudentRequest(student.getId(), student.getName(), false,
+                        LocalDateTime.now(Clock.systemDefaultZone()));
+                List<StudentRequest> requests = admin.get().getRequests();
+                requests.add(studentRequest);
                 admin.get().setRequests(requests);
                 adminService.addAdmin(admin.get());
                 requestEmail(student);
                 String result = emailValidation(student);
                 if (result.equals("email-sent")) {
-                    return new ResponseEntity<StringResponseClass>(
-                            new StringResponseClass("email-sent", "success", result),
-                            HttpStatus.OK);
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(objectMapper
+                            .writeValueAsString(new StringResponseClass("email-sent", true, result)));
                 } else if (result.equals("email-sent-error")) {
                     studentService.deleteStudent(student.getId());
                     cTokenService.deleteConfirmationToken(student.getId());
-                    return new ResponseEntity<StringResponseClass>(
-                            new StringResponseClass("email-sent-error", "failure", result),
-                            HttpStatus.SERVICE_UNAVAILABLE);
+                    return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                            .body(objectMapper
+                                    .writeValueAsString(new StringResponseClass("email-sent-error", false, result)));
                 } else {
                     cTokenService.deleteConfirmationToken(student.getId());
-                    return new ResponseEntity<StringResponseClass>(
-                            new StringResponseClass("add-student-error", "failure", result),
-                            HttpStatus.OK);
+                    return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                            .body(objectMapper
+                                    .writeValueAsString(new StringResponseClass("add-student-error", false, result)));
                 }
             } else {
                 cTokenService.deleteConfirmationToken(student.getId());
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("add-student-error", "failure", "admin-not-found"),
-                        HttpStatus.OK);
+                return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("failure", false, "admin-not-found")));
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
-    @GetMapping("/student/resent-email/{id}")
-    public ResponseEntity<StringResponseClass> emailReSend(@PathVariable String id) {
+    @GetMapping("/student/resent-email/")
+    public ModelAndView emailResend(@RequestParam String id) {
+        ModelAndView modelAndView = new ModelAndView("email-sent");
         try {
             Student student = studentService.getStudent(id);
+            if (studentService.getStudent(student.getId()) == null) {
+                student.setPassword(adminService.encode(student.getPassword()));
+            }
             addToken(student);
-            return addStudent(student);
+            Optional<Admin> admin = adminRepository.findByAdminCode(student.getAdminCode());
+            StudentRequest studentRequest = new StudentRequest(student.getId(), student.getName(), false,
+                    LocalDateTime.now(Clock.systemDefaultZone()));
+            List<StudentRequest> requests = admin.get().getRequests();
+            requests.add(studentRequest);
+            admin.get().setRequests(requests);
+            adminService.addAdmin(admin.get());
+            requestEmail(student);
+            String result = emailValidation(student);
+            if (result.equals("email-sent")) {
+                modelAndView.addAllObjects(new HashMap<>() {
+                    {
+                        put("source", "https://lottie.host/bc483178-2b7a-4ce7-8ccf-0e5f434dac87/95GaVwcaO9.json");
+                        put("content", "Email Sent Successfully.");
+                        put("result", "Thank You...");
+                    }
+                });
+                return modelAndView;
+            } else if (result.equals("email-sent-error")) {
+                student.setEmailVerified(false);
+                studentService.addStudent(student);
+                cTokenService.deleteConfirmationToken(id);
+                modelAndView.addAllObjects(new HashMap<>() {
+                    {
+                        put("source", "https://lottie.host/fa0b77aa-710c-4c56-a940-f5fc482bd754/uL1Xr2VO68.json");
+                        put("content", "Error Occuring while sending email.");
+                        put("result", "Please Try again later.");
+                    }
+                });
+                return modelAndView;
+            } else {
+                cTokenService.deleteConfirmationToken(id);
+                modelAndView.addAllObjects(new HashMap<>() {
+                    {
+                        put("source", "https://lottie.host/fa0b77aa-710c-4c56-a940-f5fc482bd754/uL1Xr2VO68.json");
+                        put("content", "Error Occured.");
+                        put("result", "Please Try again later.");
+                    }
+                });
+                return modelAndView;
+            }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            cTokenService.deleteConfirmationToken(id);
+            modelAndView.addAllObjects(new HashMap<>() {
+                {
+                    put("source", "https://lottie.host/fa0b77aa-710c-4c56-a940-f5fc482bd754/uL1Xr2VO68.json");
+                    put("content", "Error Occured.");
+                    put("result", "Please Try again later.");
+                }
+            });
+            return modelAndView;
         }
     }
 
-    @GetMapping("/student/student-username-check/{username}")
-    public ResponseEntity<StringResponseClass> checkUsername(@PathVariable String username) {
+    @GetMapping("/api/student/username-check/")
+    public ResponseEntity<String> checkUsername(@RequestParam String username) throws JsonProcessingException {
         try {
             String result = studentService.userNameCheck(username);
             if (result.equals("true")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-found", "success", result),
-                        HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("student-found", true, result)));
             } else if (result.equals("false")) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("student-not-found", "success", result),
-                        HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("student-not-found", true, result)));
             } else {
-                return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", result),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
+                return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("failure", false, result)));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(new StringResponseClass("error", "failure", "error"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
-    @GetMapping("/student/email-verify-check/{id}")
-    public ResponseEntity<StringResponseClass> emailVerifyCheck(@PathVariable String id) {
+    @GetMapping("/api/student/email-verify-check/")
+    public ResponseEntity<String> emailVerifyCheck(@RequestParam String id) throws JsonProcessingException {
         try {
-            Boolean result = studentService.getStudent(id).getEmailVerified();
+            Student student = studentService.getStudent(id);
+            if (student.getId() == null) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("UnAuthorized User.", true, "false")));
+            }
+            Boolean result = student.getEmailVerified();
             if (result) {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-verified", "success", "true"), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("email-verified", true, "true")));
             } else {
-                return new ResponseEntity<StringResponseClass>(
-                        new StringResponseClass("email-not-verified", "success", "false"), HttpStatus.OK);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(new StringResponseClass("email-not-verified", true, "false")));
             }
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
-    @GetMapping("/student/resent-request-email/{sId}")
-    public ResponseEntity<StringResponseClass> resentRequestEmail(@PathVariable String sId) {
+    @GetMapping("/api/student/resent-request-email/")
+    public ResponseEntity<String> resentRequestEmail(@RequestParam String sId) throws JsonProcessingException {
         try {
             Student student = studentService.getStudent(sId);
             requestEmail(student);
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("email-sent", "success", "email-sent"), HttpStatus.OK);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("email-sent", true, "email-sent")));
         } catch (Exception e) {
-            return new ResponseEntity<StringResponseClass>(
-                    new StringResponseClass("error", "failure", "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
         }
     }
 
+    @GetMapping("/api/student/forgot-password/")
+    public ResponseEntity<String> forgotPassword(@RequestParam String username)
+            throws JsonProcessingException {
+        try {
+            Optional<Student> student = studentRepository.findByUsername(username);
+            if (student.isPresent()) {
+                if (sendForgotPasswordEmail(student.get().getEmail(), student.get().getId())) {
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                            .body(objectMapper.writeValueAsString(
+                                    new StringResponseClass(
+                                            "student-found-email-sent", true,
+                                            student.get().getEmail())));
+                } else {
+                    return ResponseEntity.internalServerError()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(objectMapper.writeValueAsString(new StringResponseClass(
+                                    "failure", false, "error")));
+                }
+
+            } else {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(new StringResponseClass(
+                                "admin-not-found", true, username)));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper.writeValueAsString(new StringResponseClass(
+                            "failure", false, "error")));
+        }
+    }
+
+    @GetMapping("/api/student/reset-password/")
+    public ModelAndView resetPassword(@RequestParam String id) {
+        ModelAndView modelAndView = new ModelAndView("reset-password");
+        modelAndView.addAllObjects(new HashMap<>() {
+            {
+                put("username", studentService.getStudent(id).getUsername());
+                put("id", id);
+                put("password", new Password());
+                put("role", "student");
+            }
+        });
+        return modelAndView;
+    }
+
+    @PostMapping("/student/update-password")
+    public ModelAndView updatePassword(@ModelAttribute Password password) {
+        ModelAndView modelAndView = new ModelAndView("password-updated");
+        Student student = studentService.getStudent(password.getId());
+        student.setPassword(studentService.encode(password.getPassword()));
+        return modelAndView;
+    }
+
+    // Methods for used above to reduce code and to understand code.
+
     private String emailValidation(Student student) {
-        return emailSender.sendEmail(student.getEmail(), "Account Verification",
-                emailBody(student))
+        return emailSender.sendConfirmationHTMLEmail(student.getEmail(), "Account Confirmation", "student",
+                student.getId(), student.getName())
                         ? ((studentService.addStudent(student) != null) ? "email-sent"
                                 : "add-student-error")
                         : "email-sent-error";
@@ -219,27 +355,8 @@ public class StudentController {
 
     private void requestEmail(Student student) {
         Optional<Admin> admin = adminRepository.findByAdminCode(student.getAdminCode());
-        emailSender.sendEmail(admin.get().getEmail(), "Requesting to join your group",
-                requestBody(student, admin.get()));
-    }
-
-    private String emailBody(Student student) {
-        return "Hi, " + student.getName() + ", \n " +
-                "Welcome to the Heart❤️" +
-                "\n\n" +
-                "This is valid only 1 hour." +
-                "Click the below link to verify your account :" + Urls.STUDENT_BASE_URL + "confirm-account/"
-                + student.getId();
-    }
-
-    private String requestBody(Student student, Admin admin) {
-        return "Hi " + admin.getName() + ", \n " +
-                "Welcome to the Heart❤️" +
-                "\n\n" +
-                student.getName() + " wants to join your group." +
-                "Click the folowing link to join him/her or go to app notifications page to join him/her." +
-                "Click Here : " + Urls.ADMIN_BASE_URL + "accept-student/" + admin.getId() + "/" + student.getId() + "/"
-                + true;
+        emailSender.sendRequestHTMLEmail(admin.get().getEmail(), "Request To Join Group", admin.get().getId(),
+                student.getId(), admin.get().getName(), student.getName());
     }
 
     private void addToken(Student student) {
@@ -247,4 +364,10 @@ public class StudentController {
                 LocalDateTime.from(LocalDateTime.now().plusHours(1)));
         cTokenService.addConfirmationToken(cToken);
     }
+
+    private boolean sendForgotPasswordEmail(String mail, String id)
+            throws MessagingException, IOException {
+        return emailSender.sendResetPasswordHTMLEmail(mail, "Reset Password", id, "student");
+    }
+
 }

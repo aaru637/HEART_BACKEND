@@ -2,7 +2,6 @@ package com.heart.heart.Concrete;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -25,7 +24,7 @@ public class Admin {
     private String password;
     private String adminCode;
     private List<String> group;
-    private Map<String, String> requests;
+    private List<StudentRequest> requests;
     private String type;
     private Boolean emailVerified;
     private int attemptsLeft;
