@@ -78,6 +78,7 @@ public class AdminService {
     public String acceptStudentRequests(String aId, String sId) {
         try {
             Admin admin = adminRepository.findById(aId).get();
+<<<<<<< HEAD
             List<StudentRequest> requests = admin.getRequests();
             if (!(admin.getGroup().contains(sId))) {
                 Student student = studentService.getStudent(sId);
@@ -86,6 +87,23 @@ public class AdminService {
                 student.setAdminAccept(true);
                 studentService.addStudent(student);
                 admin.setRequests(requests);
+=======
+            Map<String, String> requests = admin.getRequests();
+            requests.put(sId, Boolean.toString(value));
+            Student student = studentRepository.findById(sId).get();
+            student.setAdminAccept(value);
+            studentRepository.save(student);
+            admin.setRequests(requests);
+            if (value) {
+                if (!(admin.getGroup().contains(sId))) {
+                    List<String> group = admin.getGroup();
+                    group.add(sId);
+                    admin.setGroup(group);
+                } else {
+                    return "user-already-enrolled";
+                }
+            } else {
+>>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                 List<String> group = admin.getGroup();
                 group.add(sId);
                 admin.setGroup(group);

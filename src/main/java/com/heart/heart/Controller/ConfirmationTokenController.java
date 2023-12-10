@@ -2,7 +2,11 @@ package com.heart.heart.Controller;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+<<<<<<< HEAD
 import java.util.HashMap;
+=======
+import java.util.Optional;
+>>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +40,7 @@ public class ConfirmationTokenController {
         ModelAndView modelAndView = new ModelAndView("confirmation-mail");
         Admin admin = adminService.getAdmin(id);
         if (admin.getId() == null) {
+<<<<<<< HEAD
             modelAndView.addAllObjects(new HashMap<>() {
                 {
                     put("type", "not-expired");
@@ -45,6 +50,9 @@ public class ConfirmationTokenController {
                 }
             });
             return modelAndView;
+=======
+            return "UnAuthorized User. Please request to resent a verification mail in your app.";
+>>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         }
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
         LocalDateTime date = LocalDateTime.now(Clock.systemDefaultZone());
@@ -91,6 +99,7 @@ public class ConfirmationTokenController {
         ModelAndView modelAndView = new ModelAndView("confirmation-mail");
         Student student = studentService.getStudent(id);
         if (student.getId() == null) {
+<<<<<<< HEAD
             modelAndView.addAllObjects(new HashMap<>() {
                 {
                     put("type", "not-expired");
@@ -100,6 +109,9 @@ public class ConfirmationTokenController {
                 }
             });
             return modelAndView;
+=======
+            return "UnAuthorized User. Please request to resent a verification mail in your app.";
+>>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         }
         ConfirmationToken cToken = cTokenService.getConfirmationToken(id);
         LocalDateTime date = LocalDateTime.now();

@@ -77,11 +77,19 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency><!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-jasper -->
+<<<<<<< HEAD
 <!-- <dependency>
     <groupId>org.apache.tomcat</groupId>
     <artifactId>tomcat-jasper</artifactId>
     <version>11.0.0-M14</version>
 </dependency> -->
+=======
+<dependency>
+    <groupId>org.apache.tomcat</groupId>
+    <artifactId>tomcat-jasper</artifactId>
+    <version>11.0.0-M14</version>
+</dependency>
+>>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
 
   </dependencies>
 
