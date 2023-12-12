@@ -78,42 +78,47 @@ public class AdminService {
     public String acceptStudentRequests(String aId, String sId) {
         try {
             Admin admin = adminRepository.findById(aId).get();
-<<<<<<< HEAD
-            List<StudentRequest> requests = admin.getRequests();
-            if (!(admin.getGroup().contains(sId))) {
-                Student student = studentService.getStudent(sId);
-                requests.add(new StudentRequest(student.getId(), student.getName(), true,
-                        LocalDateTime.now(Clock.systemDefaultZone())));
-                student.setAdminAccept(true);
-                studentService.addStudent(student);
-                admin.setRequests(requests);
-=======
-            Map<String, String> requests = admin.getRequests();
-            requests.put(sId, Boolean.toString(value));
-            Student student = studentRepository.findById(sId).get();
-            student.setAdminAccept(value);
-            studentRepository.save(student);
-            admin.setRequests(requests);
-            if (value) {
-                if (!(admin.getGroup().contains(sId))) {
+            if (studentService.getStudent(sId) != null) {
+                List<StudentRequest> requests = admin.getRequests();
+                StudentRequest request = findStudentRequest(requests, sId);
+                if (request.getAccepted() == false) {
+                    deleteStudentRequest(request, requests);
+                    request.setAccepted(true);
+                    requests.add(request);
+                    Student student = studentService.getStudent(sId);
+                    student.setAdminAccept(true);
+                    studentService.addStudent(student);
+                    admin.setRequests(requests);
                     List<String> group = admin.getGroup();
                     group.add(sId);
                     admin.setGroup(group);
                 } else {
-                    return "user-already-enrolled";
+                    return "student-already-enrolled";
                 }
             } else {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
-                List<String> group = admin.getGroup();
-                group.add(sId);
-                admin.setGroup(group);
-            } else {
-                return "user-already-enrolled";
+                return "student-not-found";
             }
             return (addAdmin(admin) != null) ? "ok" : "not-ok";
         } catch (Exception e) {
             return "error";
         }
+    }
+
+    private Boolean deleteStudentRequest(StudentRequest request, List<StudentRequest> requests) {
+        try {
+            return requests.remove(request);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private StudentRequest findStudentRequest(List<StudentRequest> requests, String id) {
+        for (StudentRequest request : requests) {
+            if (id.equals(request.getId())) {
+                return request;
+            }
+        }
+        return null;
     }
 
     public String adminLogin(String... data) {

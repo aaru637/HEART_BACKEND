@@ -11,21 +11,13 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
-<<<<<<< HEAD
-=======
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,13 +57,8 @@ public class AdminController {
                 return "Welcome to Deadlock";
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/")
         public ResponseEntity<String> getAdmin(@RequestParam String id) throws JsonProcessingException {
-=======
-        @GetMapping("/admin/{id}")
-        public ResponseEntity<String> getAdmin(@PathVariable String id) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                 try {
                         Admin admin = adminService.getAdmin(id);
                         if (admin.getId() == null) {
@@ -94,18 +81,11 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/login/")
         public ResponseEntity<String> adminLogin(@RequestParam String username, @RequestParam String password)
                         throws JsonProcessingException {
                 try {
                         String result = adminService.adminLogin(new String[] { username, password });
-=======
-        @GetMapping("/admin/login/{data}")
-        public ResponseEntity<String> adminLogin(@PathVariable String... data) throws JsonProcessingException {
-                try {
-                        String result = adminService.adminLogin(data);
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                         if (result.startsWith("attempts")) {
                                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
                                                 .body(objectMapper
@@ -137,11 +117,7 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin")
-=======
-        @GetMapping("/admin")
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         public ResponseEntity<String> getAllAdmin() throws JsonProcessingException {
                 try {
                         List<Admin> admins = adminService.getAllAdmins();
@@ -170,19 +146,12 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @PostMapping("/api/admin")
         public ResponseEntity<String> addAdmin(@RequestBody Admin admin) throws JsonProcessingException {
                 try {
                         if (adminService.getAdmin(admin.getId()) == null) {
                                 admin.setPassword(adminService.encode(admin.getPassword()));
                         }
-=======
-        @PostMapping("/admin")
-        public ResponseEntity<String> addAdmin(@RequestBody Admin admin) throws JsonProcessingException {
-                try {
-                        admin.setPassword(adminService.encode(admin.getPassword()));
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                         addToken(admin);
                         String result = emailValidation(admin);
                         if (result.equals("email-sent")) {
@@ -192,12 +161,8 @@ public class AdminController {
                                                                                 new StringResponseClass("email-sent",
                                                                                                 true, result)));
                         } else if (result.equals("email-sent-error")) {
-<<<<<<< HEAD
                                 admin.setEmailVerified(false);
                                 adminService.addAdmin(admin);
-=======
-                                adminService.deleteAdmin(admin.getId());
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
                                                 .body(objectMapper
                                                                 .writeValueAsString(
@@ -221,7 +186,6 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/admin/resent-email/")
         public ModelAndView emailResend(@RequestParam String id) {
                 ModelAndView modelAndView = new ModelAndView("email-sent");
@@ -279,24 +243,6 @@ public class AdminController {
 
         @GetMapping("/api/admin/username-check/")
         public ResponseEntity<String> checkUsername(@RequestParam String username) throws JsonProcessingException {
-=======
-        @GetMapping("/admin/resent-email/{id}")
-        public ResponseEntity<String> emailReSend(@PathVariable String id) throws JsonProcessingException {
-                try {
-                        Admin admin = adminService.getAdmin(id);
-                        return addAdmin(admin);
-                } catch (Exception e) {
-                        return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
-                                        .body(objectMapper
-                                                        .writeValueAsString(
-                                                                        new StringResponseClass("failure", true,
-                                                                                        "error")));
-                }
-        }
-
-        @GetMapping("/admin/admin-username-check/{username}")
-        public ResponseEntity<String> checkUsername(@PathVariable String username) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                 try {
                         String result = adminService.userNameCheck(username);
                         return adminUserAndCodeCheck(result);
@@ -309,13 +255,8 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/admin-code-check/")
         public ResponseEntity<String> checkAdminCode(@RequestParam String adminCode) throws JsonProcessingException {
-=======
-        @GetMapping("/admin/admin-code-check/{adminCode}")
-        public ResponseEntity<String> checkAdminCode(@PathVariable String adminCode) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                 try {
                         String result = adminService.adminCodeCheck(adminCode);
                         return adminUserAndCodeCheck(result);
@@ -328,19 +269,11 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/accept-student/")
         public ResponseEntity<String> acceptStudentRequests(@RequestParam String aId, @RequestParam String sId)
                         throws JsonProcessingException {
                 try {
                         String result = adminService.acceptStudentRequests(aId, sId);
-=======
-        @GetMapping("/admin/accept-student/{aId}/{sId}/{value}")
-        public ResponseEntity<String> acceptStudentRequests(@PathVariable String aId, @PathVariable String sId,
-                        @PathVariable Boolean value) throws JsonProcessingException {
-                try {
-                        String result = adminService.acceptStudentRequests(aId, sId, value);
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                         if (result.equals("ok")) {
                                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
                                                 .body(objectMapper
@@ -372,13 +305,8 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/email-verify-check/")
         public ResponseEntity<String> emailVerifyCheck(@RequestParam String id) throws JsonProcessingException {
-=======
-        @GetMapping("/admin/email-verify-check/{id}")
-        public ResponseEntity<String> emailVerifyCheck(@PathVariable String id) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                 try {
                         Admin admin = adminService.getAdmin(id);
                         if (admin.getId() == null) {
@@ -412,18 +340,12 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/forgot-password/")
         public ResponseEntity<String> forgotPassword(@RequestParam String username)
-=======
-        @GetMapping("/admin/forgot-password/{username}")
-        public ResponseEntity<String> forgotPassword(@PathVariable String username, Model model)
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                         throws JsonProcessingException {
                 try {
                         Optional<Admin> admin = adminRepository.findByUsername(username);
                         if (admin.isPresent()) {
-<<<<<<< HEAD
                                 if (sendForgotPasswordEmail(admin.get().getEmail(), admin.get().getId())) {
                                         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
                                                         .body(objectMapper.writeValueAsString(
@@ -437,12 +359,6 @@ public class AdminController {
                                                                         "failure", false, "error")));
                                 }
 
-=======
-                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
-                                                .body(objectMapper.writeValueAsString(
-                                                                new StringResponseClass("admin-found-email-sent", true,
-                                                                                admin.get().getEmail())));
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                         } else {
                                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
                                                 .body(objectMapper.writeValueAsString(new StringResponseClass(
@@ -455,7 +371,6 @@ public class AdminController {
                 }
         }
 
-<<<<<<< HEAD
         @GetMapping("/api/admin/reset-password/")
         public ModelAndView resetPassword(@RequestParam String id) {
                 ModelAndView modelAndView = new ModelAndView("reset-password");
@@ -492,7 +407,7 @@ public class AdminController {
                                         }
                                 });
                                 return modelAndView;
-                        } else if (result.equals("user-already-enrolled")) {
+                        } else if (result.equals("student-already-enrolled")) {
                                 modelAndView.addAllObjects(new HashMap<>() {
                                         {
                                                 put("source", "https://lottie.host/d7bbb351-8a1a-48d8-bc05-dda1b4e88e42/XgERJyOwAM.json");
@@ -501,7 +416,20 @@ public class AdminController {
                                         }
                                 });
                                 return modelAndView;
-                        } else {
+                        }
+
+                        else if (result.equals("student-not-found")) {
+                                modelAndView.addAllObjects(new HashMap<>() {
+                                        {
+                                                put("source", "https://lottie.host/d4722b1c-a3cc-4d71-bb0c-cbd25d67b234/VdqG2zsuza.json");
+                                                put("content", "Student Not Found.");
+                                                put("result", "Thank You...");
+                                        }
+                                });
+                                return modelAndView;
+                        }
+
+                        else {
                                 modelAndView.addAllObjects(new HashMap<>() {
                                         {
                                                 put("source", "https://lottie.host/fa0b77aa-710c-4c56-a940-f5fc482bd754/uL1Xr2VO68.json");
@@ -528,29 +456,6 @@ public class AdminController {
         private String emailValidation(Admin admin) {
                 return emailSender.sendConfirmationHTMLEmail(admin.getEmail(), "Account Confirmation", "admin",
                                 admin.getId(), admin.getName())
-=======
-        @GetMapping("/admin/forgot/{id}")
-        public ModelAndView forgot(@PathVariable String id, Model model) {
-                Admin admin = adminService.getAdmin(id);
-                ModelAndView modelAndView = new ModelAndView("index");
-                modelAndView.addObject("username", admin.getUsername());
-                return modelAndView;
-        }
-
-        private String emailBody(Admin admin) {
-                return "Hi, " + admin.getName() + ", \n " +
-                                "Welcome to the Heart❤️" +
-                                "\n\n" +
-                                "This is valid only 1 hour." +
-                                "Click the below link to verify your account :" + Urls.ADMIN_BASE_URL
-                                + "confirm-account/"
-                                + admin.getId();
-        }
-
-        private String emailValidation(Admin admin) {
-                return emailSender.sendEmail(admin.getEmail(), "Account Verification",
-                                emailBody(admin))
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
                                                 ? ((adminService.addAdmin(admin) != null) ? "email-sent"
                                                                 : "add-admin-error")
                                                 : "email-sent-error";
@@ -582,14 +487,11 @@ public class AdminController {
                                                                         new StringResponseClass("failure", false,
                                                                                         "error")));
                 }
-<<<<<<< HEAD
         }
 
         private boolean sendForgotPasswordEmail(String mail, String id)
                         throws MessagingException, IOException {
                 return emailSender.sendResetPasswordHTMLEmail(mail, "Reset Password", id, "admin");
-=======
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         }
 
 }

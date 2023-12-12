@@ -9,11 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-<<<<<<< HEAD
-=======
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,7 +55,6 @@ public class StudentController {
 
     @Autowired
     private AdminRepository adminRepository;
-<<<<<<< HEAD
 
     @Autowired
     private StudentRepository studentRepository;
@@ -70,14 +64,6 @@ public class StudentController {
 
     @GetMapping("/api/student/")
     public ResponseEntity<String> getStudent(@RequestParam String id) throws JsonProcessingException {
-=======
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @GetMapping("/student/{id}")
-    public ResponseEntity<String> getStudent(@PathVariable String id) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         try {
             Student student = studentService.getStudent(id);
             if (student.getId() == null) {
@@ -93,14 +79,9 @@ public class StudentController {
         }
     }
 
-<<<<<<< HEAD
     @GetMapping("/api/student/login/")
     public ResponseEntity<String> studentLogin(@RequestParam String username, @RequestParam String password)
             throws JsonProcessingException {
-=======
-    @GetMapping("/student/login/{data}")
-    public ResponseEntity<String> studentLogin(@PathVariable String... data) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         try {
             String result = studentService.studentLogin(new String[] { username, password });
             if (result.equals("admin-not-accept")) {
@@ -120,11 +101,7 @@ public class StudentController {
         }
     }
 
-<<<<<<< HEAD
     @GetMapping("/api/student")
-=======
-    @GetMapping("/student")
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
     public ResponseEntity<String> getAllStudent() throws JsonProcessingException {
         try {
             List<Student> students = studentService.getAllStudents();
@@ -141,11 +118,7 @@ public class StudentController {
         }
     }
 
-<<<<<<< HEAD
     @PostMapping("/api/student")
-=======
-    @PostMapping("/student")
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
     public ResponseEntity<String> addStudent(@RequestBody Student student) throws JsonProcessingException {
         try {
             student.setPassword(studentService.encode(student.getPassword()));
@@ -189,14 +162,9 @@ public class StudentController {
         }
     }
 
-<<<<<<< HEAD
     @GetMapping("/student/resent-email/")
     public ModelAndView emailResend(@RequestParam String id) {
         ModelAndView modelAndView = new ModelAndView("email-sent");
-=======
-    @GetMapping("/student/resent-email/{id}")
-    public ResponseEntity<String> emailReSend(@PathVariable String id) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         try {
             Student student = studentService.getStudent(id);
             if (studentService.getStudent(student.getId()) == null) {
@@ -245,7 +213,6 @@ public class StudentController {
                 return modelAndView;
             }
         } catch (Exception e) {
-<<<<<<< HEAD
             cTokenService.deleteConfirmationToken(id);
             modelAndView.addAllObjects(new HashMap<>() {
                 {
@@ -260,16 +227,6 @@ public class StudentController {
 
     @GetMapping("/api/student/username-check/")
     public ResponseEntity<String> checkUsername(@RequestParam String username) throws JsonProcessingException {
-=======
-            return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
-                    .body(objectMapper
-                            .writeValueAsString(new StringResponseClass("failure", false, "error")));
-        }
-    }
-
-    @GetMapping("/student/student-username-check/{username}")
-    public ResponseEntity<String> checkUsername(@PathVariable String username) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         try {
             String result = studentService.userNameCheck(username);
             if (result.equals("true")) {
@@ -292,13 +249,8 @@ public class StudentController {
         }
     }
 
-<<<<<<< HEAD
     @GetMapping("/api/student/email-verify-check/")
     public ResponseEntity<String> emailVerifyCheck(@RequestParam String id) throws JsonProcessingException {
-=======
-    @GetMapping("/student/email-verify-check/{id}")
-    public ResponseEntity<String> emailVerifyCheck(@PathVariable String id) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         try {
             Student student = studentService.getStudent(id);
             if (student.getId() == null) {
@@ -323,13 +275,8 @@ public class StudentController {
         }
     }
 
-<<<<<<< HEAD
     @GetMapping("/api/student/resent-request-email/")
     public ResponseEntity<String> resentRequestEmail(@RequestParam String sId) throws JsonProcessingException {
-=======
-    @GetMapping("/student/resent-request-email/{sId}")
-    public ResponseEntity<String> resentRequestEmail(@PathVariable String sId) throws JsonProcessingException {
->>>>>>> 1a6f4af14917fc551b6fa858730aaa21401fdcf5
         try {
             Student student = studentService.getStudent(sId);
             requestEmail(student);
