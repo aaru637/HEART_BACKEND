@@ -241,6 +241,50 @@ public class AdminController {
                 }
         }
 
+        @GetMapping("/api/admin/resent-email/")
+        public ResponseEntity<String> emailResendAPI(@RequestParam String id) throws JsonProcessingException {
+                try {
+                        Admin admin = adminService.getAdmin(id);
+                        if (adminService.getAdmin(admin.getId()) == null) {
+                                admin.setPassword(adminService.encode(admin.getPassword()));
+                        }
+                        addToken(admin);
+                        String result = emailValidation(admin);
+                        if (result.equals("email-sent")) {
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass("email-sent",
+                                                                                                true, result)));
+                        } else if (result.equals("email-sent-error")) {
+                                admin.setEmailVerified(false);
+                                adminService.addAdmin(admin);
+                                cTokenService.deleteConfirmationToken(id);
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass(
+                                                                                                "email-sent-error",
+                                                                                                false, result)));
+                        } else {
+                                cTokenService.deleteConfirmationToken(id);
+                                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                                .body(objectMapper
+                                                                .writeValueAsString(
+                                                                                new StringResponseClass("error",
+                                                                                                false, result)));
+                        }
+                } catch (Exception e) {
+                        cTokenService.deleteConfirmationToken(id);
+                        cTokenService.deleteConfirmationToken(id);
+                        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                                        .body(objectMapper
+                                                        .writeValueAsString(
+                                                                        new StringResponseClass("error",
+                                                                                        false, "error-occured")));
+                }
+        }
+
         @GetMapping("/api/admin/username-check/")
         public ResponseEntity<String> checkUsername(@RequestParam String username) throws JsonProcessingException {
                 try {

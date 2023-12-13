@@ -217,6 +217,49 @@ public class StudentController {
         }
     }
 
+    @GetMapping("/api/student/resent-email/")
+    public ResponseEntity<String> emailResendAPI(@RequestParam String id) throws JsonProcessingException {
+        try {
+            Student student = studentService.getStudent(id);
+            if (studentService.getStudent(student.getId()) == null) {
+                student.setPassword(adminService.encode(student.getPassword()));
+            }
+            addToken(student);
+            String result = emailValidation(student);
+            if (result.equals("email-sent")) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(
+                                        new StringResponseClass("email-sent",
+                                                true, result)));
+            } else if (result.equals("email-sent-error")) {
+                student.setEmailVerified(false);
+                studentService.addStudent(student);
+                cTokenService.deleteConfirmationToken(id);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(
+                                        new StringResponseClass(
+                                                "email-sent-error",
+                                                false, result)));
+            } else {
+                cTokenService.deleteConfirmationToken(id);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper
+                                .writeValueAsString(
+                                        new StringResponseClass("error",
+                                                false, result)));
+            }
+        } catch (Exception e) {
+            cTokenService.deleteConfirmationToken(id);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper
+                            .writeValueAsString(
+                                    new StringResponseClass("error",
+                                            false, "error-occured")));
+        }
+    }
+
     @GetMapping("/api/student/username-check/")
     public ResponseEntity<String> checkUsername(@RequestParam String username) throws JsonProcessingException {
         try {
