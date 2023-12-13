@@ -356,7 +356,7 @@ public class StudentController {
         }
     }
 
-    @GetMapping("/api/student/reset-password/")
+    @GetMapping("/student/reset-password/")
     public ModelAndView resetPassword(@RequestParam String id) {
         ModelAndView modelAndView = new ModelAndView("reset-password");
         modelAndView.addAllObjects(new HashMap<>() {

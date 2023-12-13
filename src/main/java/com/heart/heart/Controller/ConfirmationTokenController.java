@@ -30,7 +30,7 @@ public class ConfirmationTokenController {
     @Autowired
     private StudentService studentService;
 
-    @GetMapping("/api/admin/confirm-account/")
+    @GetMapping("/admin/confirm-account/")
     public ModelAndView adminConfirmAccount(@RequestParam String id) {
         ModelAndView modelAndView = new ModelAndView("confirmation-mail");
         Admin admin = adminService.getAdmin(id);
@@ -85,7 +85,7 @@ public class ConfirmationTokenController {
         }
     }
 
-    @GetMapping("/api/student/confirm-account/")
+    @GetMapping("/student/confirm-account/")
     public ModelAndView studentConfirmAccount(@RequestParam String id) {
         ModelAndView modelAndView = new ModelAndView("confirmation-mail");
         Student student = studentService.getStudent(id);

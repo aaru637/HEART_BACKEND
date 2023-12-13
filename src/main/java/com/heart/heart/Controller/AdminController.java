@@ -415,7 +415,7 @@ public class AdminController {
                 }
         }
 
-        @GetMapping("/api/admin/reset-password/")
+        @GetMapping("/admin/reset-password/")
         public ModelAndView resetPassword(@RequestParam String id) {
                 ModelAndView modelAndView = new ModelAndView("reset-password");
                 modelAndView.addAllObjects(new HashMap<>() {
