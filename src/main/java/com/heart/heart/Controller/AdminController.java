@@ -434,6 +434,8 @@ public class AdminController {
                 ModelAndView modelAndView = new ModelAndView("password-updated");
                 Admin admin = adminService.getAdmin(password.getId());
                 admin.setPassword(adminService.encode(password.getPassword()));
+                adminService.addAdmin(admin);
+                System.out.println(admin);
                 return modelAndView;
         }
 
