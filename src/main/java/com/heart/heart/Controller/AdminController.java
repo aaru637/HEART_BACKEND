@@ -149,9 +149,7 @@ public class AdminController {
         @PostMapping("/api/admin")
         public ResponseEntity<String> addAdmin(@RequestBody Admin admin) throws JsonProcessingException {
                 try {
-                        if (adminService.getAdmin(admin.getId()) == null) {
-                                admin.setPassword(adminService.encode(admin.getPassword()));
-                        }
+                        admin.setPassword(adminService.encode(admin.getPassword()));
                         addToken(admin);
                         String result = emailValidation(admin);
                         if (result.equals("email-sent")) {
