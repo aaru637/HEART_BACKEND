@@ -462,9 +462,19 @@ public class AdminController {
         }
 
         private void addToken(Admin admin) {
-                ConfirmationToken cToken = new ConfirmationToken(admin.getId(), admin.getEmail(), LocalDateTime.now(),
-                                LocalDateTime.from(LocalDateTime.now(Clock.systemDefaultZone()).plusHours(1)));
-                cTokenService.addConfirmationToken(cToken);
+                ConfirmationToken token = cTokenService.getConfirmationToken(admin.getId());
+                if (token.getId() == null) {
+                        ConfirmationToken cToken = new ConfirmationToken(admin.getId(), admin.getEmail(),
+                                        LocalDateTime.now(Clock.systemDefaultZone()),
+                                        LocalDateTime.from(LocalDateTime.now(Clock.systemDefaultZone()).plusHours(1)));
+                        cTokenService.addConfirmationToken(cToken);
+                } else {
+                        ConfirmationToken cToken = token;
+                        cToken.setTokenCreated(LocalDateTime.now());
+                        cToken.setTokenExpired(
+                                        LocalDateTime.from(LocalDateTime.now(Clock.systemDefaultZone()).plusHours(1)));
+                        cTokenService.addConfirmationToken(cToken);
+                }
         }
 
         private ResponseEntity<String> adminUserAndCodeCheck(String result) throws JsonProcessingException {

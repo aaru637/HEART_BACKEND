@@ -171,14 +171,6 @@ public class StudentController {
                 student.setPassword(adminService.encode(student.getPassword()));
             }
             addToken(student);
-            Optional<Admin> admin = adminRepository.findByAdminCode(student.getAdminCode());
-            StudentRequest studentRequest = new StudentRequest(student.getId(), student.getName(), false,
-                    LocalDateTime.now(Clock.systemDefaultZone()));
-            List<StudentRequest> requests = admin.get().getRequests();
-            requests.add(studentRequest);
-            admin.get().setRequests(requests);
-            adminService.addAdmin(admin.get());
-            requestEmail(student);
             String result = emailValidation(student);
             if (result.equals("email-sent")) {
                 modelAndView.addAllObjects(new HashMap<>() {
