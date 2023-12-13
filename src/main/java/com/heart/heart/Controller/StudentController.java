@@ -268,9 +268,9 @@ public class StudentController {
     }
 
     @GetMapping("/api/student/resent-request-email/")
-    public ResponseEntity<String> resentRequestEmail(@RequestParam String sId) throws JsonProcessingException {
+    public ResponseEntity<String> resentRequestEmail(@RequestParam String id) throws JsonProcessingException {
         try {
-            Student student = studentService.getStudent(sId);
+            Student student = studentService.getStudent(id);
             requestEmail(student);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
                     .body(objectMapper
