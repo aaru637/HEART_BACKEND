@@ -74,13 +74,13 @@
         <p><span><b th:text="${sName}">
                 </b></span> wants to join your group. </p>
         <p>Click the following link to accept <span><b th:text="${sName}"></b></span> <a
-                th:href="@{'https://heart-bhp5.onrender.com/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}">Click
+                th:href="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}">Click
                 Here</a> or Copy and Paste the following
             link in your browser. <a
-                th:href="@{'https://heart-bhp5.onrender.com/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}"
-                th:text="@{'https://heart-bhp5.onrender.com/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}">/</a></p>
+                th:href="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}"
+                th:text="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}">/</a></p>
         <div class="button">
-            <a th:href="@{'https://heart-bhp5.onrender.com/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}"
+            <a th:href="@{'http://localhost:8080/admin/accept-student/?aId=' + ${aId} + '&sId=' + ${sId}}"
                 target="_blank">VERIFY</a>
         </div>
         <p>This is an auto-generated mail. Don't reply with this mail.</p>
